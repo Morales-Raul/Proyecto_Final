@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="shortcut icon" href="assets/images/Icono.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inicio de Sesion</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/Inicio_Sesion.css">
+</head>
+<body>
+    <main>
+        <div class="contenedor__todo">
+            <div class="caja__trasera">
+                <div class="caja__trasera-login">
+                    <h3>¿Ya tienes una cuenta?</h3>
+                    <p>Inicia sesión para entrar en la página</p>
+                    <button id="btn__iniciar-sesion">Iniciar Sesión</button>
+                </div>
+                <div class="caja__trasera-register">
+                    <h3>¿Aún no tienes una cuenta?</h3>
+                    <p>Regístrate para que puedas iniciar sesión</p>
+                    <button id="btn__registrarse">Regístrate</button>
+                </div>
+            </div>
+            <div class="contenedor__login-register">
+            
+                <form id="formulario_login" class="formulario__login">
+                    <h2>Iniciar Sesión</h2>
+                    <input type="text" id="email_login" placeholder="Correo Electrónico">
+                    <input type="password" id="password_login" placeholder="Contraseña">
+                    <button type="button" id="login_button">Entrar</button>
+                </form>
+<form id="formulario_register" class="formulario__register">
+    <h2>Regístrate</h2>
+    <input type="text" id="nombre" placeholder="Nombre completo">
+    <input type="text" id="email_registro" placeholder="Correo Electrónico">
+    <input type="password" id="password_registro" placeholder="Contraseña">
+    <select id="rol_registro">
+        <option value="CLIENTE">Cliente</option>
+        <option value="ADMIN">Administrador</option>
+    </select>
+    <button type="button" id="register_button">Regístrate</button>
+</form>
+
+            </div>
+        </div>
+    </main>
+    <script src="assets/js/Inicio_Sesion.js"></script>
+</body>
+</html>

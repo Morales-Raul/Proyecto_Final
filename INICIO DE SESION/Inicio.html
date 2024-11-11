@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Reservas de Hotel</title>
+    <link rel="stylesheet" href="assets/css/Inicio.css">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="assets/js/Inicio.js" defer></script>
+    <script src="assets/js/Cerrar_Sesion.js" defer></script>
+</head>
+<body>
+    <header class="header">
+        <nav class="navbar">
+            <a href="#" onclick="showSection('view-reservations')">Ver Reservaciones</a>
+            <a href="#" onclick="showSection('search-rooms')">Buscar Habitaciones</a>
+            <a href="#" onclick="showSection('make-reservation')">Hacer Reservas</a>
+            <a href="#" onclick="showSection('modify-reservation')">Modificar Reservas</a>
+            <button id="logout_button" class="navbar-link">Cerrar Sesión</button>
+        </nav>
+    </header>
+    <main class="main-content">
+        <section id="view-reservations" class="content-section">
+            <h2>Mis Reservaciones</h2>
+            <div id="reservations-list"></div>
+        </section>
+        <section id="search-rooms" class="content-section">
+            <h2>Buscar Habitaciones Disponibles</h2>
+            <form id="search-rooms-form">
+                <label>Fecha de Entrada:</label>
+                <input type="date" id="fechaInicio" required>
+                <label>Fecha de Salida:</label>
+                <input type="date" id="fechaFin" required>
+                <button type="submit">Buscar</button>
+            </form>
+            <div id="rooms-list"></div>
+        </section>
+        <section id="make-reservation" class="content-section active">
+            <h2>Reservar Habitación</h2>
+            <form id="make-reservation-form">
+                <label>ID del Usuario:</label>
+                <input type="text" id="reservaUsuarioId" required>
+                <label>ID de Habitación:</label>
+                <input type="text" id="reservaHabitacionId" required>
+                <label>Fecha de Entrada:</label>
+                <input type="date" id="reservaFechaInicio" required>
+                <label>Fecha de Salida:</label>
+                <input type="date" id="reservaFechaFin" required>
+                <button type="submit">Reservar</button>
+            </form>
+        </section>
+        <section id="modify-reservation" class="content-section">
+            <h2>Modificar o Cancelar Reservación</h2>
+            <form id="modify-reservation-form">
+                <label>Número de Reservación:</label>
+                <input type="text" id="modificarId" required>
+                <label>Fecha de Entrada:</label>
+                <input type="date" id="modificarFechaInicio" required>
+                <label>Fecha de Salida:</label>
+                <input type="date" id="modificarFechaFin" required>
+                <button type="submit">Modificar</button>
+                <button type="button" onclick="cancelReservation()">Cancelar</button>
+            </form>
+            
+        </section>
+    </main>
+
+    <script>
+        
+        function showSection(sectionId) {
+            const sections = document.querySelectorAll('.content-section');
+            sections.forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById(sectionId).classList.add('active');
+        }
+
+        window.onload = () => {
+    
+            showSection('make-reservation');
+            getReservations(); 
+        };
+
+
+        function getReservations() {
+            axios.get('http://localhost:8080/reservas')
+            .then(response => {
+                const reservationsList = document.getElementById('reservations-list');
+                reservationsList.innerHTML = ''; 
+                response.data.forEach(reserva => {
+                    const reservationItem = document.createElement('div');
+                    reservationItem.innerHTML = `
+                        <p><strong>ID:</strong> ${reserva.id}</p>
+                        <p><strong>Fecha de Inicio:</strong> ${reserva.fechaInicio}</p>
+                        <p><strong>Fecha de Fin:</strong> ${reserva.fechaFin}</p>
+                        <p><strong>ID de Habitación:</strong> ${reserva.habitacion.id}</p>
+                        <p><strong>ID de Usuario:</strong> ${reserva.usuario.id}</p>
+                        <hr>
+                    `;
+                    reservationsList.appendChild(reservationItem);
+                });
+            })
+            .catch(error => {
+                console.error('Error al obtener reservaciones:', error.response ? error.response.data : error.message);
+            });
+        }
+
+
+document.getElementById('search-rooms-form').addEventListener('submit', (event) => {
+    event.preventDefault();
+    const fechaInicio = document.getElementById('fechaInicio').value;
+    const fechaFin = document.getElementById('fechaFin').value;
+
+    axios.get(`http://localhost:8080/habitaciones/disponibilidad?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`)
+    .then(response => {
+        const roomsList = document.getElementById('rooms-list');
+        roomsList.innerHTML = ''; 
+
+        response.data.forEach(habitacion => {
+            const roomItem = document.createElement('div');
+            roomItem.innerHTML = `Habitación: ${habitacion.tipo}, Precio: ${habitacion.precio}, Disponible: ${habitacion.disponible ? 'Sí' : 'No'}`;
+            roomsList.appendChild(roomItem);
+        });
+    })
+    .catch(error => {
+        console.error('Error al buscar habitaciones:', error.response ? error.response.data : error.message);
+    });
+});
+
+document.getElementById('make-reservation-form').addEventListener('submit', (event) => {
+    event.preventDefault();
+    const nombre = document.getElementById('reservaNombre').value;
+    const tipo = document.getElementById('reservaTipo').value;
+    const fechaInicio = document.getElementById('reservaFechaInicio').value;
+    const fechaFin = document.getElementById('reservaFechaFin').value;
+
+    if (!nombre || !tipo || !fechaInicio || !fechaFin) {
+        console.error('Todos los campos son obligatorios.');
+        return;
+    }
+
+    axios.get(`http://localhost:8080/reservas?nombre=${nombre}&tipo=${tipo}&fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`)
+    .then(response => {
+        if (response.data && response.data.length > 0) {
+            console.error('La reservación ya existe.');
+            alert('Ya existe una reservación para estos detalles.');
+        } else {
+            axios.post('http://localhost:8080/reservas', {
+                usuario: { nombre: nombre },
+                habitacion: { tipo: tipo },
+                fechaInicio: fechaInicio,
+                fechaFin: fechaFin
+            })
+            .then(response => {
+                console.log('Reservación creada:', response.data);
+                document.getElementById('make-reservation-form').reset();
+            })
+            .catch(error => {
+                console.error('Error al crear reservación:', error.response ? error.response.data : error.message);
+            });
+        }
+    })
+    .catch(error => {
+        console.error('Error al verificar reservación:', error.response ? error.response.data : error.message);
+    });
+});
+
+
+document.getElementById('modify-reservation-form').addEventListener('submit', (event) => {
+    event.preventDefault();
+    const id = document.getElementById('modificarId').value;
+    const tipo = document.getElementById('modificarTipo').value;
+
+    axios.put(`http://localhost:8080/reservas/${id}`, {
+        habitacion: { tipo: tipo }
+    })
+    .then(response => {
+        console.log('Reservación modificada:', response.data);
+    })
+    .catch(error => {
+        console.error('Error al modificar reservación:', error.response ? error.response.data : error.message);
+    });
+});
+
+function cancelReservation() {
+    const id = document.getElementById('modificarId').value;
+    axios.delete(`http://localhost:8080/reservas/${id}`)
+    .then(response => {
+        console.log('Reservación cancelada:', response.data);
+        location.reload(); 
+    })
+    .catch(error => {
+        console.error('Error al cancelar reservación:', error.response ? error.response.data : error.message);
+    });
+}
+</script> 
+</body> 
+</html>
